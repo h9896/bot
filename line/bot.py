@@ -10,6 +10,7 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, ImageSendMessage
 )
 import cropy
+import stock
 
 bot = Flask(__name__)
 
@@ -40,16 +41,24 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     msg = event.message.text
-    lis = ["BTC", "ETH", "ZEC", "XRP"]
+    lis = ["BTC", "ETH", "ZEC", "XRP", "BCH", "DASH", "BTG"]
     msg = msg.upper()
-    if msg not in lis:
-        print("Sorry this crypto currency is not in service!")
-        print("Please type again!")
-        content = "Sorry this crypto currency is not in service!"
-    else:
+    if msg in lis:
         p = cropy.price(msg).last_price()
         print("{0}/USD: {1}".format(msg, p))
         content = "{0}/USD: {1}".format(msg, p)
+    elif msg.isdigit():
+        col, val = stock.stocks(msg).search()
+        if val != []:
+            content = ""
+            for i in range(len(val)):
+                content += "{0}:{1}\n".format(col[i],val[i])
+        else:
+            content = "The stock is not exit!"
+    else:
+        print("Sorry this crypto currency is not in service!")
+        print("Please type again!")
+        content = "Sorry this crypto currency is not in service!"
     line_bot_api.reply_message(event.reply_token,TextSendMessage(text = content))
 
 import os
